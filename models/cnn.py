@@ -216,7 +216,7 @@ def mini_XCEPTION(input_shape, num_classes, l2_regularization=0.01):
 
     # module 1
     residual = Conv2D(16, (1, 1), strides=(2, 2),
-                      padding='same', use_bias=False)(x)
+                      padding='same', use_bias=True)(x)
     residual = BatchNormalization()(residual)
 
     x = SeparableConv2D(16, (3, 3), padding='same',
@@ -234,7 +234,7 @@ def mini_XCEPTION(input_shape, num_classes, l2_regularization=0.01):
 
     # module 2
     residual = Conv2D(32, (1, 1), strides=(2, 2),
-                      padding='same', use_bias=False)(x)
+                      padding='same', use_bias=True)(x)
     residual = BatchNormalization()(residual)
 
     x = SeparableConv2D(32, (3, 3), padding='same',
@@ -252,7 +252,7 @@ def mini_XCEPTION(input_shape, num_classes, l2_regularization=0.01):
 
     # module 3
     residual = Conv2D(64, (1, 1), strides=(2, 2),
-                      padding='same', use_bias=False)(x)
+                      padding='same', use_bias=True)(x)
     residual = BatchNormalization()(residual)
 
     x = SeparableConv2D(64, (3, 3), padding='same',
@@ -270,7 +270,7 @@ def mini_XCEPTION(input_shape, num_classes, l2_regularization=0.01):
 
     # module 4
     residual = Conv2D(128, (1, 1), strides=(2, 2),
-                      padding='same', use_bias=False)(x)
+                      padding='same', use_bias=True)(x)
     residual = BatchNormalization()(residual)
 
     x = SeparableConv2D(128, (3, 3), padding='same',
