@@ -43,8 +43,6 @@ model.summary()
 
 
 
- # callbacks
-
 class TimeHistory(Callback):
 
     def __init__(self):
@@ -60,6 +58,7 @@ class TimeHistory(Callback):
     def on_epoch_end(self, batch, logs={}):
         self.times.append(time() - self.epoch_time_start)
 
+ # callbacks
 
 log_file_path = base_path + '_emotion_training.log'
 csv_logger = CSVLogger(log_file_path, append=False)
@@ -72,8 +71,6 @@ model_checkpoint = ModelCheckpoint(model_names, 'val_loss', verbose=1,
                                                     save_best_only=True)
 
 time_callback = TimeHistory()
-times = time_callback.times   # epoch computation times
-ellapsed_time = sum(times)    # overall ellapsed time
 callbacks = [model_checkpoint, csv_logger, early_stop, reduce_lr, time_callback]
 
 # loading dataset
@@ -86,6 +83,12 @@ history = model.fit_generator(data_generator.flow(xtrain, ytrain,
                         steps_per_epoch=len(xtrain) / batch_size,
                         epochs=num_epochs, verbose=1, callbacks=callbacks,
                         validation_data=(xtest,ytest))
+
+# training time
+times = time_callback.times   # epoch computation times
+ellapsed_time = sum(times)    # overall ellapsed time
+print('training time for each epoch: {}' .format(times))
+print('overall ellapsed time: {}' .format(ellapsed_time))
 
 # Plot training & validation accuracy values
 plt.plot(history.history['accuracy'])
