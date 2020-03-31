@@ -35,7 +35,7 @@ data_generator = ImageDataGenerator(
                         horizontal_flip=True)
 
 # model parameters/compilation
-model = mini_XCEPTION(input_shape, num_classes)
+model = big_XCEPTION(input_shape, num_classes)
 model.compile(optimizer='adam', loss='categorical_crossentropy',
               metrics=['accuracy'])
 model.summary()
@@ -47,8 +47,12 @@ model.summary()
 
 class TimeHistory(Callback):
 
-    def on_train_begin(self, logs={}):
+    def __init__(self):
+        super().__init__()
         self.times = []
+
+    def on_train_begin(self, logs={}):
+        pass
 
     def on_epoch_begin(self, batch, logs={}):
         self.epoch_time_start = time()
