@@ -10,6 +10,7 @@ from load_and_process import load_fer2013
 from load_and_process import preprocess_input
 from models.cnn import mini_XCEPTION, big_XCEPTION
 from sklearn.model_selection import train_test_split
+import matplotlib.pyplot as plt
 
 # parameters
 batch_size = 32
@@ -36,7 +37,7 @@ model = big_XCEPTION(input_shape, num_classes)
 model.compile(optimizer='adam', loss='categorical_crossentropy',
               metrics=['accuracy'])
 model.summary()
-plot_model(model, to_file='model.png')
+#plot_model(model, to_file='model.png')
 
 
 
@@ -58,8 +59,26 @@ faces, emotions = load_fer2013()
 faces = preprocess_input(faces)
 num_samples, num_classes = emotions.shape
 xtrain, xtest,ytrain,ytest = train_test_split(faces, emotions,test_size=0.2,shuffle=True)
-model.fit_generator(data_generator.flow(xtrain, ytrain,
+history = model.fit_generator(data_generator.flow(xtrain, ytrain,
                                             batch_size),
                         steps_per_epoch=len(xtrain) / batch_size,
                         epochs=num_epochs, verbose=1, callbacks=callbacks,
                         validation_data=(xtest,ytest))
+
+# Plot training & validation accuracy values
+plt.plot(history.history['acc'])
+plt.plot(history.history['val_acc'])
+plt.title('Model accuracy')
+plt.ylabel('Accuracy')
+plt.xlabel('Epoch')
+plt.legend(['Train', 'Test'], loc='upper left')
+plt.show()
+
+# Plot training & validation loss values
+plt.plot(history.history['loss'])
+plt.plot(history.history['val_loss'])
+plt.title('Model loss')
+plt.ylabel('Loss')
+plt.xlabel('Epoch')
+plt.legend(['Train', 'Test'], loc='upper left')
+plt.show()
