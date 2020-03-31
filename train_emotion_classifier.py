@@ -4,6 +4,7 @@ Description: Train emotion classification model
 
 from keras.callbacks import CSVLogger, ModelCheckpoint, EarlyStopping
 from keras.callbacks import ReduceLROnPlateau
+from keras.callbacks import Callback
 from keras.preprocessing.image import ImageDataGenerator
 from keras.utils import plot_model
 from load_and_process import load_fer2013
@@ -11,7 +12,7 @@ from load_and_process import preprocess_input
 from models.cnn import mini_XCEPTION, big_XCEPTION
 from sklearn.model_selection import train_test_split
 import matplotlib.pyplot as plt
-
+from time import time
 # parameters
 batch_size = 32
 num_epochs = 10000
@@ -33,7 +34,7 @@ data_generator = ImageDataGenerator(
                         horizontal_flip=True)
 
 # model parameters/compilation
-model = big_XCEPTION(input_shape, num_classes)
+model = mini_XCEPTION(input_shape, num_classes)
 model.compile(optimizer='adam', loss='categorical_crossentropy',
               metrics=['accuracy'])
 model.summary()
@@ -41,8 +42,20 @@ model.summary()
 
 
 
+ # callbacks
 
-    # callbacks
+class TimeHistory(Callback):
+
+    def on_train_begin(self, logs={}):
+        self.times = []
+
+    def on_epoch_begin(self, batch, logs={}):
+        self.epoch_time_start = time()
+
+    def on_epoch_end(self, batch, logs={}):
+        self.times.append(time() - self.epoch_time_start)
+
+
 log_file_path = base_path + '_emotion_training.log'
 csv_logger = CSVLogger(log_file_path, append=False)
 early_stop = EarlyStopping('val_loss', patience=patience)
@@ -52,7 +65,11 @@ trained_models_path = base_path + '_mini_XCEPTION'
 model_names = trained_models_path + '.{epoch:02d}-{val_accuracy:.2f}.hdf5'
 model_checkpoint = ModelCheckpoint(model_names, 'val_loss', verbose=1,
                                                     save_best_only=True)
-callbacks = [model_checkpoint, csv_logger, early_stop, reduce_lr]
+
+time_callback = TimeHistory()
+times = time_callback.times   # epoch computation times
+ellapsed_time = sum(times)    # overall ellapsed time
+callbacks = [model_checkpoint, csv_logger, early_stop, reduce_lr, time_callback]
 
 # loading dataset
 faces, emotions = load_fer2013()
