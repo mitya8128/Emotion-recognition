@@ -22,6 +22,7 @@ verbose = 1
 num_classes = 7
 patience = 50
 base_path = 'models/'
+#model_name =
 
 # data generator
 data_generator = ImageDataGenerator(
@@ -90,6 +91,8 @@ plt.ylabel('Accuracy')
 plt.xlabel('Epoch')
 plt.legend(['Train', 'Test'], loc='upper left')
 plt.show()
+plt.savefig('model_accuracy.png')
+plt.close()
 
 # Plot training & validation loss values
 plt.plot(history.history['loss'])
@@ -99,3 +102,5 @@ plt.ylabel('Loss')
 plt.xlabel('Epoch')
 plt.legend(['Train', 'Test'], loc='upper left')
 plt.show()
+plt.savefig('model_loss.png')
+plt.close()
