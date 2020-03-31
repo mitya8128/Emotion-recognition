@@ -37,7 +37,7 @@ model = big_XCEPTION(input_shape, num_classes)
 model.compile(optimizer='adam', loss='categorical_crossentropy',
               metrics=['accuracy'])
 model.summary()
-#plot_model(model, to_file='model.png')
+#plot_model(model, to_file='model.png')    # need Graphviz
 
 
 
@@ -66,8 +66,8 @@ history = model.fit_generator(data_generator.flow(xtrain, ytrain,
                         validation_data=(xtest,ytest))
 
 # Plot training & validation accuracy values
-plt.plot(history.history['acc'])
-plt.plot(history.history['val_acc'])
+plt.plot(history.history['accuracy'])
+plt.plot(history.history['val_accuracy'])
 plt.title('Model accuracy')
 plt.ylabel('Accuracy')
 plt.xlabel('Epoch')
