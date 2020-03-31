@@ -5,9 +5,10 @@ Description: Train emotion classification model
 from keras.callbacks import CSVLogger, ModelCheckpoint, EarlyStopping
 from keras.callbacks import ReduceLROnPlateau
 from keras.preprocessing.image import ImageDataGenerator
+from keras.utils import plot_model
 from load_and_process import load_fer2013
 from load_and_process import preprocess_input
-from models.cnn import mini_XCEPTION
+from models.cnn import mini_XCEPTION, big_XCEPTION
 from sklearn.model_selection import train_test_split
 
 # parameters
@@ -31,11 +32,11 @@ data_generator = ImageDataGenerator(
                         horizontal_flip=True)
 
 # model parameters/compilation
-model = mini_XCEPTION(input_shape, num_classes)
+model = big_XCEPTION(input_shape, num_classes)
 model.compile(optimizer='adam', loss='categorical_crossentropy',
               metrics=['accuracy'])
 model.summary()
-
+plot_model(model, to_file='model.png')
 
 
 
