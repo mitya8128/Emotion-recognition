@@ -13,9 +13,15 @@ from models.cnn import mini_XCEPTION, big_XCEPTION
 from sklearn.model_selection import train_test_split
 import matplotlib.pyplot as plt
 from time import time
+
+import tensorflow as tf
+physical_devices = tf.config.experimental.list_physical_devices('GPU')
+assert len(physical_devices) > 0, "Not enough GPU hardware devices available"
+config = tf.config.experimental.set_memory_growth(physical_devices[0], True)
+
 # parameters
 batch_size = 32
-num_epochs = 10000
+num_epochs = 102
 input_shape = (48, 48, 1)
 validation_split = .2
 verbose = 1
@@ -35,7 +41,7 @@ data_generator = ImageDataGenerator(
                         horizontal_flip=True)
 
 # model parameters/compilation
-model = big_XCEPTION(input_shape, num_classes)
+model = mini_XCEPTION(input_shape, num_classes)
 model.compile(optimizer='adam', loss='categorical_crossentropy',
               metrics=['accuracy'])
 model.summary()
