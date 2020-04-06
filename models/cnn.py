@@ -6,7 +6,7 @@ from keras.layers import Flatten
 from keras.models import Model
 from keras.layers import Input
 from keras.layers import MaxPooling2D
-from keras.layers import SeparableConv2D
+from keras.layers import SeparableConv2D, Cropping2D, Average
 from keras import layers
 from keras.regularizers import l2
 
@@ -339,6 +339,139 @@ def big_XCEPTION(input_shape, num_classes):
     model = Model(img_input, output)
     return model
 
+# big_XCEPTION with multilocal feature learning
+def big_multi_XCEPTION(input_shape, num_classes):
+    img_input = Input(input_shape)
+    eyes = Cropping2D(((0,24),(0,0)))(img_input)
+    mouth = Cropping2D(((24,0),(0,0)))(img_input)
+
+    x = Conv2D(32, (3, 3), strides=(2, 2), use_bias=False)(img_input)    # x for whole image, y for eyes, z for mouth
+    x = BatchNormalization(name='block1_conv1_bn')(x)
+    x = Activation('relu', name='block1_conv1_act')(x)
+    x = Conv2D(64, (3, 3), use_bias=False)(x)
+    x = BatchNormalization(name='block1_conv2_bn')(x)
+    x = Activation('relu', name='block1_conv2_act')(x)
+
+    residual = Conv2D(128, (1, 1), strides=(2, 2),
+                      padding='same', use_bias=False)(x)
+    residual = BatchNormalization()(residual)
+
+    x = SeparableConv2D(128, (3, 3), padding='same', use_bias=False)(x)
+    x = BatchNormalization(name='block2_sepconv1_bn')(x)
+    x = Activation('relu', name='block2_sepconv2_act')(x)
+    x = SeparableConv2D(128, (3, 3), padding='same', use_bias=False)(x)
+    x = BatchNormalization(name='block2_sepconv2_bn')(x)
+
+    x = MaxPooling2D((3, 3), strides=(2, 2), padding='same')(x)
+    x = layers.add([x, residual])
+
+    residual = Conv2D(256, (1, 1), strides=(2, 2),
+                      padding='same', use_bias=False)(x)
+    residual = BatchNormalization()(residual)
+
+    x = Activation('relu', name='block3_sepconv1_act')(x)
+    x = SeparableConv2D(256, (3, 3), padding='same', use_bias=False)(x)
+    x = BatchNormalization(name='block3_sepconv1_bn')(x)
+    x = Activation('relu', name='block3_sepconv2_act')(x)
+    x = SeparableConv2D(256, (3, 3), padding='same', use_bias=False)(x)
+    x = BatchNormalization(name='block3_sepconv2_bn')(x)
+
+    x = MaxPooling2D((3, 3), strides=(2, 2), padding='same')(x)
+    x = layers.add([x, residual])
+    x = Conv2D(num_classes, (3, 3),
+            #kernel_regularizer=regularization,
+            padding='same')(x)
+    x = GlobalAveragePooling2D()(x)
+    output_face = Activation('softmax',name='predictions')(x)
+
+
+    # eyes
+    x = Conv2D(32, (3, 3), strides=(2, 2), use_bias=False)(eyes)  # x for whole image, y for eyes, z for mouth
+    x = BatchNormalization(name='block1_conv1_bn')(x)
+    x = Activation('relu', name='block1_conv1_act')(x)
+    x = Conv2D(64, (3, 3), use_bias=False)(x)
+    x = BatchNormalization(name='block1_conv2_bn')(x)
+    x = Activation('relu', name='block1_conv2_act')(x)
+
+    residual = Conv2D(128, (1, 1), strides=(2, 2),
+                      padding='same', use_bias=False)(x)
+    residual = BatchNormalization()(residual)
+
+    x = SeparableConv2D(128, (3, 3), padding='same', use_bias=False)(x)
+    x = BatchNormalization(name='block2_sepconv1_bn')(x)
+    x = Activation('relu', name='block2_sepconv2_act')(x)
+    x = SeparableConv2D(128, (3, 3), padding='same', use_bias=False)(x)
+    x = BatchNormalization(name='block2_sepconv2_bn')(x)
+
+    x = MaxPooling2D((3, 3), strides=(2, 2), padding='same')(x)
+    x = layers.add([x, residual])
+
+    residual = Conv2D(256, (1, 1), strides=(2, 2),
+                      padding='same', use_bias=False)(x)
+    residual = BatchNormalization()(residual)
+
+    x = Activation('relu', name='block3_sepconv1_act')(x)
+    x = SeparableConv2D(256, (3, 3), padding='same', use_bias=False)(x)
+    x = BatchNormalization(name='block3_sepconv1_bn')(x)
+    x = Activation('relu', name='block3_sepconv2_act')(x)
+    x = SeparableConv2D(256, (3, 3), padding='same', use_bias=False)(x)
+    x = BatchNormalization(name='block3_sepconv2_bn')(x)
+
+    x = MaxPooling2D((3, 3), strides=(2, 2), padding='same')(x)
+    x = layers.add([x, residual])
+    x = Conv2D(num_classes, (3, 3),
+               # kernel_regularizer=regularization,
+               padding='same')(x)
+    x = GlobalAveragePooling2D()(x)
+    output_eyes = Activation('softmax', name='predictions')(x)
+
+    # mouth
+    x = Conv2D(32, (3, 3), strides=(2, 2), use_bias=False)(mouth)  # x for whole image, y for eyes, z for mouth
+    x = BatchNormalization(name='block1_conv1_bn')(x)
+    x = Activation('relu', name='block1_conv1_act')(x)
+    x = Conv2D(64, (3, 3), use_bias=False)(x)
+    x = BatchNormalization(name='block1_conv2_bn')(x)
+    x = Activation('relu', name='block1_conv2_act')(x)
+
+    residual = Conv2D(128, (1, 1), strides=(2, 2),
+                      padding='same', use_bias=False)(x)
+    residual = BatchNormalization()(residual)
+
+    x = SeparableConv2D(128, (3, 3), padding='same', use_bias=False)(x)
+    x = BatchNormalization(name='block2_sepconv1_bn')(x)
+    x = Activation('relu', name='block2_sepconv2_act')(x)
+    x = SeparableConv2D(128, (3, 3), padding='same', use_bias=False)(x)
+    x = BatchNormalization(name='block2_sepconv2_bn')(x)
+
+    x = MaxPooling2D((3, 3), strides=(2, 2), padding='same')(x)
+    x = layers.add([x, residual])
+
+    residual = Conv2D(256, (1, 1), strides=(2, 2),
+                      padding='same', use_bias=False)(x)
+    residual = BatchNormalization()(residual)
+
+    x = Activation('relu', name='block3_sepconv1_act')(x)
+    x = SeparableConv2D(256, (3, 3), padding='same', use_bias=False)(x)
+    x = BatchNormalization(name='block3_sepconv1_bn')(x)
+    x = Activation('relu', name='block3_sepconv2_act')(x)
+    x = SeparableConv2D(256, (3, 3), padding='same', use_bias=False)(x)
+    x = BatchNormalization(name='block3_sepconv2_bn')(x)
+
+    x = MaxPooling2D((3, 3), strides=(2, 2), padding='same')(x)
+    x = layers.add([x, residual])
+    x = Conv2D(num_classes, (3, 3),
+               # kernel_regularizer=regularization,
+               padding='same')(x)
+    x = GlobalAveragePooling2D()(x)
+    output_mouth = Activation('softmax', name='predictions')(x)
+
+    # model averaging
+    #submodels = [output_face,output_eyes,output_mouth]
+    #output = Average(submodels)
+    output = (output_face+output_eyes+output_mouth)/3.0
+
+    model = Model(img_input, output)
+    return model
 
 if __name__ == "__main__":
     input_shape = (64, 64, 1)
