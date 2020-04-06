@@ -384,7 +384,7 @@ def big_multi_XCEPTION(input_shape, num_classes):
             #kernel_regularizer=regularization,
             padding='same')(x)
     x = GlobalAveragePooling2D()(x)
-    output_face = Activation('softmax',name='predictions')(x)
+    output_face = Activation('softmax',name='predictions_face')(x)
 
 
     # eyes
@@ -425,7 +425,7 @@ def big_multi_XCEPTION(input_shape, num_classes):
                # kernel_regularizer=regularization,
                padding='same')(y)
     y = GlobalAveragePooling2D()(y)
-    output_eyes = Activation('softmax', name='predictions')(y)
+    output_eyes = Activation('softmax', name='predictions_eyes')(y)
 
     # mouth
     z = Conv2D(32, (3, 3), strides=(2, 2), use_bias=False)(mouth)  # x for whole image, y for eyes, z for mouth
@@ -465,7 +465,7 @@ def big_multi_XCEPTION(input_shape, num_classes):
                # kernel_regularizer=regularization,
                padding='same')(z)
     z = GlobalAveragePooling2D()(z)
-    output_mouth = Activation('softmax', name='predictions')(z)
+    output_mouth = Activation('softmax', name='predictions_mouth')(z)
 
     # model averaging
     sub_models = [output_face,output_eyes,output_mouth]
