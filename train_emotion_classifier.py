@@ -9,7 +9,7 @@ from keras.preprocessing.image import ImageDataGenerator
 from keras.utils import plot_model
 from load_and_process import load_fer2013
 from load_and_process import preprocess_input
-from models.cnn import mini_XCEPTION, big_XCEPTION
+from models.cnn import mini_XCEPTION, big_XCEPTION, big_multi_XCEPTION
 from sklearn.model_selection import train_test_split
 import matplotlib.pyplot as plt
 from time import time
@@ -21,13 +21,14 @@ config = tf.config.experimental.set_memory_growth(physical_devices[0], True)
 
 # parameters
 batch_size = 32
-num_epochs = 102
+num_epochs = 2
 input_shape = (48, 48, 1)
 validation_split = .2
 verbose = 1
 num_classes = 7
-patience = 50
+patience = 30
 base_path = 'models/'
+model_name = '_big_multi_XCEPTION'
 #model_name =
 
 # data generator
@@ -41,7 +42,7 @@ data_generator = ImageDataGenerator(
                         horizontal_flip=True)
 
 # model parameters/compilation
-model = mini_XCEPTION(input_shape, num_classes)
+model = big_multi_XCEPTION(input_shape, num_classes)
 model.compile(optimizer='adam', loss='categorical_crossentropy',
               metrics=['accuracy'])
 model.summary()
@@ -71,7 +72,7 @@ csv_logger = CSVLogger(log_file_path, append=False)
 early_stop = EarlyStopping('val_loss', patience=patience)
 reduce_lr = ReduceLROnPlateau('val_loss', factor=0.1,
                                   patience=int(patience/4), verbose=1)
-trained_models_path = base_path + '_mini_XCEPTION'
+trained_models_path = base_path + model_name
 model_names = trained_models_path + '.{epoch:02d}-{val_accuracy:.2f}.hdf5'
 model_checkpoint = ModelCheckpoint(model_names, 'val_loss', verbose=1,
                                                     save_best_only=True)
@@ -97,6 +98,7 @@ print('training time for each epoch: {}' .format(times))
 print('overall ellapsed time: {}' .format(ellapsed_time))
 
 # Plot training & validation accuracy values
+plot1 = plt.figure()
 plt.plot(history.history['accuracy'])
 plt.plot(history.history['val_accuracy'])
 plt.title('Model accuracy')
@@ -104,10 +106,11 @@ plt.ylabel('Accuracy')
 plt.xlabel('Epoch')
 plt.legend(['Train', 'Test'], loc='upper left')
 plt.show()
-plt.savefig('model_accuracy.png')
-plt.close()
+plt.savefig('model_accuracy_{}ep_{}.png' .format(num_epochs,model_name))
+plt.close(plot1)
 
 # Plot training & validation loss values
+plot2 = plt.figure()
 plt.plot(history.history['loss'])
 plt.plot(history.history['val_loss'])
 plt.title('Model loss')
@@ -115,5 +118,5 @@ plt.ylabel('Loss')
 plt.xlabel('Epoch')
 plt.legend(['Train', 'Test'], loc='upper left')
 plt.show()
-plt.savefig('model_loss.png')
-plt.close()
+plt.savefig('model_loss_{}ep_{}.png' .format(num_epochs,model_name))
+plt.close(plot2)
