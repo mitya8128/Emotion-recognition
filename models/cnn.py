@@ -655,8 +655,63 @@ def multi_VGG_16_modified(input_shape, num_classes):
     y = GlobalAveragePooling2D()(y)
     output_eyes = Activation('softmax', name='predictions_eyes')(y)
 
+    # mouth
+    # block1
+    z = Conv2D(32, (3, 3), strides=(2, 2), use_bias=False, padding='same')(mouth)
+    z = BatchNormalization(name='block1_conv1_bn_mouth')(z)
+    z = Activation('relu', name='block1_conv1_act_mouth')(z)
+    z = Conv2D(32, (3, 3), use_bias=False, padding='same')(z)
+    z = BatchNormalization(name='block1_conv2_bn_mouth')(z)
+    z = Activation('relu', name='block1_conv2_act_mouth')(z)
+
+    z = MaxPooling2D((3, 3), strides=(2, 2), padding='same')(z)
+
+    # block2
+    z = Conv2D(64, (3, 3), strides=(2, 2), use_bias=False, padding='same')(z)
+    z = BatchNormalization(name='block2_conv1_bn_mouth')(z)
+    z = Activation('relu', name='block2_conv1_act_mouth')(z)
+    z = Conv2D(64, (3, 3), use_bias=False, padding='same')(z)
+    z = BatchNormalization(name='block2_conv2_bn_mouth')(z)
+    z = Activation('relu', name='block2_conv2_act_mouth')(z)
+
+    z = MaxPooling2D((3, 3), strides=(2, 2), padding='same')(z)
+
+    # block3
+    z = Conv2D(128, (3, 3), strides=(2, 2), use_bias=False, padding='same')(z)
+    z = BatchNormalization(name='block3_conv1_bn_mouth')(z)
+    z = Activation('relu', name='block3_conv1_act_mouth')(z)
+    z = Conv2D(128, (3, 3), use_bias=False, padding='same')(z)
+    z = BatchNormalization(name='block3_conv2_bn_mouth')(z)
+    z = Activation('relu', name='block3_conv2_act_mouth')(z)
+
+    z = MaxPooling2D((2, 2), strides=(2, 2), padding='same')(z)
+
+    # block4
+    z = Conv2D(256, (3, 3), strides=(2, 2), use_bias=False, padding='same')(z)
+    z = BatchNormalization(name='block4_conv1_bn_mouth')(z)
+    z = Activation('relu', name='block4_conv1_act_mouth')(z)
+    z = Conv2D(256, (3, 3), use_bias=False, padding='same')(z)
+    z = BatchNormalization(name='block4_conv2_bn_mouth')(z)
+    z = Activation('relu', name='block4_conv2_act_mouth')(z)
+
+    z = MaxPooling2D((2, 2), strides=(2, 2), padding='same')(z)
+
+    # block5
+    z = Conv2D(512, (3, 3), strides=(2, 2), use_bias=False, padding='same')(z)
+    z = BatchNormalization(name='block5_conv1_bn_mouth')(z)
+    z = Activation('relu', name='block5_conv1_act_mouth')(z)
+    z = Conv2D(512, (3, 3), use_bias=False, padding='same')(z)
+    z = BatchNormalization(name='block5_conv2_bn_mouth')(z)
+    z = Activation('relu', name='block5_conv2_act_mouth')(z)
+
+    z = Conv2D(num_classes, (3, 3),
+               # kernel_regularizer=regularization,
+               padding='same')(z)
+    z = GlobalAveragePooling2D()(z)
+    output_mouth = Activation('softmax', name='predictions_mouth')(z)
+
     # model averaging
-    sub_models = [output_face, output_eyes]
+    sub_models = [output_face, output_eyes, output_mouth]
     output = Average()
     output = output(sub_models)
     model = Model(img_input,output)
