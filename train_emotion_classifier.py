@@ -7,29 +7,44 @@ from keras.callbacks import ReduceLROnPlateau
 from keras.callbacks import Callback
 from keras.preprocessing.image import ImageDataGenerator
 from keras.utils import plot_model
+from keras import backend as K
 from load_and_process import load_fer2013
 from load_and_process import preprocess_input
-from models.cnn import mini_XCEPTION, big_XCEPTION, big_multi_XCEPTION
+from models.cnn import mini_XCEPTION, big_XCEPTION, big_multi_XCEPTION, VGG_16_modified, multi_VGG_16_modified
 from sklearn.model_selection import train_test_split
 import matplotlib.pyplot as plt
 from time import time
-
 import tensorflow as tf
-physical_devices = tf.config.experimental.list_physical_devices('GPU')
-assert len(physical_devices) > 0, "Not enough GPU hardware devices available"
-config = tf.config.experimental.set_memory_growth(physical_devices[0], True)
+import os
+
 
 # parameters
 batch_size = 32
-num_epochs = 2
+num_epochs = 10
 input_shape = (48, 48, 1)
 validation_split = .2
 verbose = 1
 num_classes = 7
-patience = 30
+patience = 50
 base_path = 'models/'
-model_name = '_big_multi_XCEPTION'
-#model_name =
+model_name = 'VGG'
+number_of_cores = 1
+gpu_use = False    # switch between gpu and cpu use
+
+
+if gpu_use:
+
+    physical_devices = tf.config.experimental.list_physical_devices('GPU')
+    assert len(physical_devices) > 0, "Not enough GPU hardware devices available"
+    config = tf.config.experimental.set_memory_growth(physical_devices[0], True)
+
+else:
+
+    os.environ["CUDA_DEVICE_ORDER"] = "PCI_BUS_ID"
+    os.environ["CUDA_VISIBLE_DEVICES"] = ""
+    #config = tf.compat.v1.ConfigProto(device_count={"CPU": number_of_cores})
+    #K.set_session(tf.compat.v1.Session(config=config))
+
 
 # data generator
 data_generator = ImageDataGenerator(
@@ -42,7 +57,7 @@ data_generator = ImageDataGenerator(
                         horizontal_flip=True)
 
 # model parameters/compilation
-model = big_multi_XCEPTION(input_shape, num_classes)
+model = multi_VGG_16_modified(input_shape, num_classes)
 model.compile(optimizer='adam', loss='categorical_crossentropy',
               metrics=['accuracy'])
 model.summary()
