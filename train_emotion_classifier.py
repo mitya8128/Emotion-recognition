@@ -16,19 +16,28 @@ import matplotlib.pyplot as plt
 from time import time
 import tensorflow as tf
 import os
+import argparse
 
+parser = argparse.ArgumentParser()
+parser.add_argument("--cores", help="define number of CPU cores",
+                    type=int)
+parser.add_argument("--epoches", help="number of training epoches",
+                    type=int)
+args = parser.parse_args()
+if args.cores:
+    print('number of cores is {}' .format("--cores"))
 
 # parameters
 batch_size = 32
-num_epochs = 10
+num_epochs = args.epoches
 input_shape = (48, 48, 1)
 validation_split = .2
 verbose = 1
 num_classes = 7
 patience = 50
 base_path = 'models/'
-model_name = 'VGG'
-number_of_cores = 1
+model_name = 'big_multi_XCEPTION'
+number_of_cores = args.cores
 gpu_use = False    # switch between gpu and cpu use
 
 
@@ -42,9 +51,9 @@ else:
 
     os.environ["CUDA_DEVICE_ORDER"] = "PCI_BUS_ID"
     os.environ["CUDA_VISIBLE_DEVICES"] = ""
-    config = tf.compat.v1.ConfigProto(intra_op_parallelism_threads=number_of_cores,
-                            inter_op_parallelism_threads=number_of_cores,
-                            allow_soft_placement=True,
+    config = tf.compat.v1.ConfigProto(#intra_op_parallelism_threads=number_of_cores,
+                            #inter_op_parallelism_threads=number_of_cores,
+                            #allow_soft_placement=True,
                             device_count={'CPU': number_of_cores})
     session = tf.compat.v1.Session(config=config)
     tf.compat.v1.keras.backend.set_session(session)
@@ -85,9 +94,9 @@ class TimeHistory(Callback):
 
  # callbacks
 
-log_file_path = base_path + '_emotion_training.log'
+log_file_path = base_path + '_emotion_training_{}_{}_{}.log' .format(num_epochs,number_of_cores,model_name)
 csv_logger = CSVLogger(log_file_path, append=False)
-early_stop = EarlyStopping('val_loss', patience=patience)
+#early_stop = EarlyStopping('val_loss', patience=patience)
 reduce_lr = ReduceLROnPlateau('val_loss', factor=0.1,
                                   patience=int(patience/4), verbose=1)
 trained_models_path = base_path + model_name
@@ -96,7 +105,7 @@ model_checkpoint = ModelCheckpoint(model_names, 'val_loss', verbose=1,
                                                     save_best_only=True)
 
 time_callback = TimeHistory()
-callbacks = [model_checkpoint, csv_logger, early_stop, reduce_lr, time_callback]
+callbacks = [model_checkpoint, csv_logger, reduce_lr, time_callback]
 
 # loading dataset
 faces, emotions = load_fer2013()
@@ -119,7 +128,8 @@ print('overall ellapsed time: {}' .format(ellapsed_time))
 plt.figure()
 plt.plot(history.history['accuracy'])
 plt.plot(history.history['val_accuracy'])
-plt.title('Model accuracy')
+plt.title('Model accuracy_number of cores:{},_ellapsed_time:{},_model_name:{}' .format(number_of_cores,ellapsed_time,
+                                                                                       model_name))
 plt.ylabel('Accuracy')
 plt.xlabel('Epoch')
 plt.legend(['Train', 'Test'], loc='upper left')
@@ -131,7 +141,8 @@ plt.savefig('model_accuracy_{}ep_{}.png' .format(num_epochs,model_name))
 plt.figure()
 plt.plot(history.history['loss'])
 plt.plot(history.history['val_loss'])
-plt.title('Model loss')
+plt.title('Model loss_number of cores:{},_ellapsed_time:{},_model_name:{}' .format(number_of_cores,ellapsed_time,
+                                                                                   model_name))
 plt.ylabel('Loss')
 plt.xlabel('Epoch')
 plt.legend(['Train', 'Test'], loc='upper left')
