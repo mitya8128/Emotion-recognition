@@ -42,9 +42,12 @@ else:
 
     os.environ["CUDA_DEVICE_ORDER"] = "PCI_BUS_ID"
     os.environ["CUDA_VISIBLE_DEVICES"] = ""
-    #config = tf.compat.v1.ConfigProto(device_count={"CPU": number_of_cores})
-    #K.set_session(tf.compat.v1.Session(config=config))
-
+    config = tf.compat.v1.ConfigProto(intra_op_parallelism_threads=number_of_cores,
+                            inter_op_parallelism_threads=number_of_cores,
+                            allow_soft_placement=True,
+                            device_count={'CPU': number_of_cores})
+    session = tf.compat.v1.Session(config=config)
+    tf.compat.v1.keras.backend.set_session(session)
 
 # data generator
 data_generator = ImageDataGenerator(
@@ -57,7 +60,7 @@ data_generator = ImageDataGenerator(
                         horizontal_flip=True)
 
 # model parameters/compilation
-model = multi_VGG_16_modified(input_shape, num_classes)
+model = big_multi_XCEPTION(input_shape, num_classes)
 model.compile(optimizer='adam', loss='categorical_crossentropy',
               metrics=['accuracy'])
 model.summary()
