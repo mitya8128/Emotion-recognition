@@ -25,7 +25,7 @@ parser.add_argument("--epoches", help="number of training epoches",
                     type=int)
 args = parser.parse_args()
 if args.num_cpu:
-    print('number of cores is {}' .format("--cores"))
+    print('number of cpu is {}' .format("--num_cpu"))
 
 # parameters
 batch_size = 32
@@ -36,7 +36,7 @@ verbose = 1
 num_classes = 7
 patience = 50
 base_path = 'models/'
-model_name = 'big_multi_XCEPTION'
+model_name = 'multi_VGG_16_modified'
 number_of_cpu = args.num_cpu
 gpu_use = False    # switch between gpu and cpu use
 
