@@ -19,12 +19,12 @@ import os
 import argparse
 
 parser = argparse.ArgumentParser()
-parser.add_argument("--cores", help="define number of CPU cores",
+parser.add_argument("--num_cpu", help="define number of CPU",
                     type=int)
 parser.add_argument("--epoches", help="number of training epoches",
                     type=int)
 args = parser.parse_args()
-if args.cores:
+if args.num_cpu:
     print('number of cores is {}' .format("--cores"))
 
 # parameters
@@ -37,7 +37,7 @@ num_classes = 7
 patience = 50
 base_path = 'models/'
 model_name = 'big_multi_XCEPTION'
-number_of_cores = args.cores
+number_of_cpu = args.num_cpu
 gpu_use = False    # switch between gpu and cpu use
 
 
@@ -54,7 +54,7 @@ else:
     config = tf.compat.v1.ConfigProto(#intra_op_parallelism_threads=number_of_cores,
                             #inter_op_parallelism_threads=number_of_cores,
                             #allow_soft_placement=True,
-                            device_count={'CPU': number_of_cores})
+                            device_count={'CPU': number_of_cpu})
     session = tf.compat.v1.Session(config=config)
     tf.compat.v1.keras.backend.set_session(session)
 
@@ -69,7 +69,7 @@ data_generator = ImageDataGenerator(
                         horizontal_flip=True)
 
 # model parameters/compilation
-model = big_multi_XCEPTION(input_shape, num_classes)
+model = multi_VGG_16_modified(input_shape, num_classes)
 model.compile(optimizer='adam', loss='categorical_crossentropy',
               metrics=['accuracy'])
 model.summary()
@@ -94,7 +94,7 @@ class TimeHistory(Callback):
 
  # callbacks
 
-log_file_path = base_path + '_emotion_training_{}_{}_{}.log' .format(num_epochs,number_of_cores,model_name)
+log_file_path = base_path + '_emotion_training_{}_{}_{}.log' .format(num_epochs,number_of_cpu,model_name)
 csv_logger = CSVLogger(log_file_path, append=False)
 #early_stop = EarlyStopping('val_loss', patience=patience)
 reduce_lr = ReduceLROnPlateau('val_loss', factor=0.1,
@@ -128,7 +128,7 @@ print('overall ellapsed time: {}' .format(ellapsed_time))
 plt.figure()
 plt.plot(history.history['accuracy'])
 plt.plot(history.history['val_accuracy'])
-plt.title('Model accuracy_number of cores:{},_ellapsed_time:{},_model_name:{}' .format(number_of_cores,ellapsed_time,
+plt.title('Model accuracy_number of cpu:{},_ellapsed_time:{},_model_name:{}' .format(number_of_cpu,ellapsed_time,
                                                                                        model_name))
 plt.ylabel('Accuracy')
 plt.xlabel('Epoch')
@@ -141,7 +141,7 @@ plt.savefig('model_accuracy_{}ep_{}.png' .format(num_epochs,model_name))
 plt.figure()
 plt.plot(history.history['loss'])
 plt.plot(history.history['val_loss'])
-plt.title('Model loss_number of cores:{},_ellapsed_time:{},_model_name:{}' .format(number_of_cores,ellapsed_time,
+plt.title('Model loss_number of cpu:{},_ellapsed_time:{},_model_name:{}' .format(number_of_cpu,ellapsed_time,
                                                                                    model_name))
 plt.ylabel('Loss')
 plt.xlabel('Epoch')
