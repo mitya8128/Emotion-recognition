@@ -1,3 +1,4 @@
+import keras
 from keras.layers import Activation, Convolution2D, Dropout, Conv2D
 from keras.layers import AveragePooling2D, BatchNormalization
 from keras.layers import GlobalAveragePooling2D
@@ -7,8 +8,10 @@ from keras.models import Model
 from keras.layers import Input
 from keras.layers import MaxPooling2D
 from keras.layers import SeparableConv2D, Cropping2D, Average
+from keras.layers import Dense, GRU, Reshape
 from keras import layers
 from keras.regularizers import l2
+from keras.applications.resnet50 import ResNet50
 
 def simple_CNN(input_shape, num_classes):
 
@@ -715,6 +718,93 @@ def multi_VGG_16_modified(input_shape, num_classes):
     output = Average()
     output = output(sub_models)
     model = Model(img_input,output)
+
+    return model
+
+def VGG_16_GRU(input_shape, num_classes):
+    img_input = Input(input_shape)
+    eyes = Cropping2D(((0,24),(0,0)))(img_input)
+    mouth = Cropping2D(((24,0),(0,0)))(img_input)
+    sub_models = []
+
+    # block1
+    x = Conv2D(32, (3, 3), strides=(2, 2), use_bias=False,padding='same')(img_input)    # x for whole image, y for eyes, z for mouth
+    x = BatchNormalization(name='block1_conv1_bn_face')(x)
+    x = Activation('relu', name='block1_conv1_act_face')(x)
+    x = Conv2D(32, (3, 3), use_bias=False,padding='same')(x)
+    x = BatchNormalization(name='block1_conv2_bn_face')(x)
+    x = Activation('relu', name='block1_conv2_act_face')(x)
+
+    x = MaxPooling2D((3, 3), strides=(2, 2), padding='same')(x)
+
+    # block2
+    x = Conv2D(64, (3, 3), strides=(2, 2), use_bias=False,padding='same')(x)
+    x = BatchNormalization(name='block2_conv1_bn_face')(x)
+    x = Activation('relu', name='block2_conv1_act_face')(x)
+    x = Conv2D(64, (3, 3), use_bias=False,padding='same')(x)
+    x = BatchNormalization(name='block2_conv2_bn_face')(x)
+    x = Activation('relu', name='block2_conv2_act_face')(x)
+
+    x = MaxPooling2D((3, 3), strides=(2, 2), padding='same')(x)
+
+    # block3
+    x = Conv2D(128, (3, 3), strides=(2, 2), use_bias=False,padding='same')(x)
+    x = BatchNormalization(name='block3_conv1_bn_face')(x)
+    x = Activation('relu', name='block3_conv1_act_face')(x)
+    x = Conv2D(128, (3, 3), use_bias=False,padding='same')(x)
+    x = BatchNormalization(name='block3_conv2_bn_face')(x)
+    x = Activation('relu', name='block3_conv2_act_face')(x)
+
+    x = MaxPooling2D((2, 2), strides=(2, 2), padding='same')(x)
+
+    # block4
+    x = Conv2D(256, (3, 3), strides=(2, 2), use_bias=False,padding='same')(x)
+    x = BatchNormalization(name='block4_conv1_bn_face')(x)
+    x = Activation('relu', name='block4_conv1_act_face')(x)
+    x = Conv2D(256, (3, 3), use_bias=False,padding='same')(x)
+    x = BatchNormalization(name='block4_conv2_bn_face')(x)
+    x = Activation('relu', name='block4_conv2_act_face')(x)
+
+    x = MaxPooling2D((2, 2), strides=(2, 2), padding='same')(x)
+
+    # block5
+    x = Conv2D(512, (3, 3), strides=(2, 2), use_bias=False,padding='same')(x)
+    x = BatchNormalization(name='block5_conv1_bn_face')(x)
+    x = Activation('relu', name='block5_conv1_act_face')(x)
+    x = Conv2D(512, (3, 3), use_bias=False,padding='same')(x)
+    x = BatchNormalization(name='block5_conv2_bn_face')(x)
+    x = Activation('relu', name='block5_conv2_act_face')(x)
+
+    x = Conv2D(num_classes, (3, 3),
+               # kernel_regularizer=regularization,
+               padding='same')(x)
+    x = GlobalAveragePooling2D()(x)
+    x = Dense(256)(x)
+    #x = Dense(256)(x)
+    x = Reshape((2,128))(x)
+    x = GRU(128, return_sequences=True)(x)
+    x = GRU(128, return_sequences=False)(x)
+    output = Dense(num_classes)(x)
+    output = Activation('softmax', name='predictions_face')(output)
+
+    model = Model(img_input,output)
+
+    return model
+
+
+# for rgb images
+def VGG_GRU_pretrained(input_shape, num_classes):
+    img_input = Input(input_shape)
+    resnet_50 = ResNet50(include_top=False, weights='imagenet', input_tensor=None, input_shape=input_shape,
+                                            pooling=max, classes=1000)
+    base = resnet_50(img_input)
+    x = Conv2D(num_classes, (3, 3), padding='same')(base)
+    x = Dense(256)(x)
+    x = Dense(256)(x)
+    x = GRU(128)(x)
+    output = Dense(num_classes)(x)
+
+    model = Model(img_input, output)
 
     return model
 
