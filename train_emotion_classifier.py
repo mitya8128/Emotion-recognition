@@ -8,9 +8,10 @@ from keras.callbacks import Callback
 from keras.preprocessing.image import ImageDataGenerator
 from keras.utils import plot_model
 from keras import backend as K
+
 from load_and_process import load_fer2013
 from load_and_process import preprocess_input
-from models.cnn import mini_XCEPTION, big_XCEPTION, big_multi_XCEPTION, VGG_16_modified, multi_VGG_16_modified
+from models.cnn import mini_XCEPTION, big_XCEPTION, big_multi_XCEPTION, VGG_16_modified, multi_VGG_16_modified, VGG_16_GRU, big_XCEPTION_GRU
 from sklearn.model_selection import train_test_split
 import matplotlib.pyplot as plt
 from time import time
@@ -23,6 +24,8 @@ parser.add_argument("--num_cpu", help="define number of CPU",
                     type=int)
 parser.add_argument("--epoches", help="number of training epoches",
                     type=int)
+parser.add_argument("--patience", help="number of epoches without improvement untill stoping",
+                    type=int)
 args = parser.parse_args()
 if args.num_cpu:
     print('number of cpu is {}' .format("--num_cpu"))
@@ -34,11 +37,11 @@ input_shape = (48, 48, 1)
 validation_split = .2
 verbose = 1
 num_classes = 7
-patience = 50
+patience = args.patience
 base_path = 'models/'
-model_name = 'multi_VGG_16_modified'
+model_name = 'mini_XCEPTION_GRU'
 number_of_cpu = args.num_cpu
-gpu_use = False    # switch between gpu and cpu use
+gpu_use = True    # switch between gpu and cpu use
 
 
 if gpu_use:
@@ -69,7 +72,7 @@ data_generator = ImageDataGenerator(
                         horizontal_flip=True)
 
 # model parameters/compilation
-model = multi_VGG_16_modified(input_shape, num_classes)
+model = mini_XCEPTION(input_shape, num_classes)
 model.compile(optimizer='adam', loss='categorical_crossentropy',
               metrics=['accuracy'])
 model.summary()
@@ -96,7 +99,7 @@ class TimeHistory(Callback):
 
 log_file_path = base_path + '_emotion_training_{}_{}_{}.log' .format(num_epochs,number_of_cpu,model_name)
 csv_logger = CSVLogger(log_file_path, append=False)
-#early_stop = EarlyStopping('val_loss', patience=patience)
+early_stop = EarlyStopping('val_loss', patience=patience)
 reduce_lr = ReduceLROnPlateau('val_loss', factor=0.1,
                                   patience=int(patience/4), verbose=1)
 trained_models_path = base_path + model_name
@@ -111,7 +114,7 @@ callbacks = [model_checkpoint, csv_logger, reduce_lr, time_callback]
 faces, emotions = load_fer2013()
 faces = preprocess_input(faces)
 num_samples, num_classes = emotions.shape
-xtrain, xtest,ytrain,ytest = train_test_split(faces, emotions,test_size=0.2,shuffle=True)
+xtrain, xtest, ytrain, ytest = train_test_split(faces, emotions,test_size=0.2,shuffle=True)
 history = model.fit_generator(data_generator.flow(xtrain, ytrain,
                                             batch_size),
                         steps_per_epoch=len(xtrain) / batch_size,
