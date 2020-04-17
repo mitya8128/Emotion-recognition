@@ -53,7 +53,7 @@ I have used [this](https://www.kaggle.com/c/3364/download-all) dataset
 
 Download it and put the csv in fer2013/fer2013/
 
--fer2013 emotion classification test accuracy: 63%
+-fer2013 emotion classification test accuracy: 65%
 
 
 # Credits
