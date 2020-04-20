@@ -4,6 +4,8 @@ import cv2
 from keras.models import load_model
 import numpy as np
 import tensorflow as tf
+import os
+os.environ["CUDA_VISIBLE_DEVICES"] = "-1"
 
 # uncoment this if you using gpu
 #physical_devices = tf.config.experimental.list_physical_devices('GPU')
@@ -12,7 +14,7 @@ import tensorflow as tf
 
 # parameters for loading data and images
 detection_model_path = 'haarcascade_files/haarcascade_frontalface_default.xml'
-emotion_model_path = 'models/_mini_XCEPTION.73-0.64.hdf5'  # path to your model
+emotion_model_path = 'models/VGG_16_GRU_test_cpu.hdf5'  # path to your model    VGG_16_GRU.48-0.62.hdf5
 image_path = 'image7.jpg'   # path to image that you want to classify
 
 # hyper-parameters for bounding boxes shape
