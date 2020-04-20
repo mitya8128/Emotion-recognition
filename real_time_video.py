@@ -26,7 +26,7 @@ EMOTIONS = ["angry" ,"disgust","scared", "happy", "sad", "surprised",
 cv2.namedWindow('your_face')
 camera = cv2.VideoCapture(0)
 while True:
-    frame = camera.read()[1]
+    frame = camera.read(0)[1]
     #reading the frame
     frame = imutils.resize(frame,width=300)
     gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
