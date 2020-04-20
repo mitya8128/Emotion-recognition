@@ -3,6 +3,8 @@ import imutils
 import cv2
 from keras.models import load_model
 import numpy as np
+import os
+os.environ["CUDA_VISIBLE_DEVICES"] = "-1"
 
 # parameters for loading data and images
 detection_model_path = 'haarcascade_files/haarcascade_frontalface_default.xml'
