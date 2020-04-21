@@ -18,9 +18,6 @@ EMOTIONS = ["angry" ,"disgust","scared", "happy", "sad", "surprised",
  "neutral"]
 
 
-#feelings_faces = []
-#for index, emotion in enumerate(EMOTIONS):
-   # feelings_faces.append(cv2.imread('emojis/' + emotion + '.png', -1))
 
 # starting video streaming
 cv2.namedWindow('your_face')
@@ -29,7 +26,10 @@ while True:
     frame = camera.read(0)[1]
     #reading the frame
     frame = imutils.resize(frame,width=300)
-    gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
+    avg = np.float32(frame)
+    cv2.accumulateWeighted(frame, avg,0.1)
+    ro_avg = cv2.convertScaleAbs(avg)
+    gray = cv2.cvtColor(ro_avg, cv2.COLOR_BGR2GRAY)
     faces = face_detection.detectMultiScale(gray,scaleFactor=1.1,minNeighbors=5,minSize=(30,30),flags=cv2.CASCADE_SCALE_IMAGE)
     
     canvas = np.zeros((250, 300, 3), dtype="uint8")
@@ -38,8 +38,8 @@ while True:
         faces = sorted(faces, reverse=True,
         key=lambda x: (x[2] - x[0]) * (x[3] - x[1]))[0]
         (fX, fY, fW, fH) = faces
-                    # Extract the ROI of the face from the grayscale image, resize it to a fixed 28x28 pixels, and then prepare
-            # the ROI for classification via the CNN
+            # Extract the ROI of the face from the grayscale image, resize it to a fixed 48x48 pixels, and then prepare
+            # the ROI for classification via the hdf model
         roi = gray[fY:fY + fH, fX:fX + fW]
         roi = cv2.resize(roi, (48, 48))
         roi = roi.astype("float") / 255.0
@@ -76,9 +76,10 @@ while True:
 #        (emoji_face[:, :, 3] / 255.0) + frame[200:320,
 #        10:130, c] * (1.0 - emoji_face[:, :, 3] / 255.0)
 
-
+    #cv2.startWindowThread()
     cv2.imshow('your_face', frameClone)
     cv2.imshow("Probabilities", canvas)
+    #cv2.waitKey(0)
     if cv2.waitKey(1) & 0xFF == ord('q'):
         break
 
