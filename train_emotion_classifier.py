@@ -76,7 +76,7 @@ model = mini_XCEPTION(input_shape, num_classes)
 model.compile(optimizer='adam', loss='categorical_crossentropy',
               metrics=['accuracy'])
 model.summary()
-#plot_model(model, to_file='model.png')    # need Graphviz
+#plot_model(model, to_file='{}.png' .format(model_name))    # need Graphviz
 
 
 
