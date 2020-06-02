@@ -3,6 +3,7 @@ import imutils
 import cv2
 from keras.models import load_model
 import numpy as np
+from scipy.ndimage import uniform_filter
 import os
 os.environ["CUDA_VISIBLE_DEVICES"] = "-1"
 
@@ -17,18 +18,41 @@ emotion_classifier = load_model(emotion_model_path, compile=False)
 EMOTIONS = ["angry" ,"disgust","scared", "happy", "sad", "surprised",
  "neutral"]
 
+# different variants of running average
+def running_mean(x, N):
+    cumsum = np.cumsum(np.insert(x, 0, 0))
+    return (cumsum[N:] - cumsum[:-N]) / float(N)
 
+class MovingAverage(object):
+    def __init__(self, size):
+        self.size = size
+        self.avg = []
+
+    def next(self, val):
+        if not self.avg or len(self.avg) < self.size:
+            self.avg.append(val)
+        else:
+            self.avg.pop(0)
+            self.avg.append(val)
+        return float(sum(self.avg)) / len(self.avg)
 
 # starting video streaming
 cv2.namedWindow('your_face')
 camera = cv2.VideoCapture(0)
+
 while True:
     frame = camera.read(0)[1]
     #reading the frame
     frame = imutils.resize(frame,width=300)
-    avg = np.float32(frame)
+
+    avg = np.asfarray(np.copy(frame))
     cv2.accumulateWeighted(frame, avg,0.1)
     ro_avg = cv2.convertScaleAbs(avg)
+
+    #https://docs.scipy.org/doc/scipy/reference/generated/scipy.ndimage.uniform_filter.html
+    #r_avg = MovingAverage(10)
+    #av_window = r_avg.next(frame)
+
     gray = cv2.cvtColor(ro_avg, cv2.COLOR_BGR2GRAY)
     faces = face_detection.detectMultiScale(gray,scaleFactor=1.1,minNeighbors=5,minSize=(30,30),flags=cv2.CASCADE_SCALE_IMAGE)
     
